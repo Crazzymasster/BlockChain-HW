@@ -39,7 +39,7 @@
                 <label for="amount">Amount</label>
                 <input type="number" id="amount" placeholder="0.00" step="0.01">
             </div>
-            <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
+            <button class="btn btn-primary" onclick="syncTransaction()">Add Transaction</button>
         </div>
 
         <div class="ledger-section">
@@ -54,10 +54,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Network Nodes Visualization -->
+        <div class="network-section">
+            <h2>Network Nodes</h2>
+            <div id="node-selector" class="node-grid"></div>
+            <div class="network-actions">
+                <button class="btn btn-consensus" onclick="validateNetworkConsensus()">
+                    Validate Network
+                </button>
+            </div>
+            <div id="consensus-result"></div>
+        </div>
     </div>
     
     <footer class="bank-footer">
-        <p>© 2026 Rice Bank. All transactions are cryptographically secured and immutable.</p>
+        <p>© 2026 Rice Bank.</p>
     </footer>
 
     <script src="blockchain.js"></script>

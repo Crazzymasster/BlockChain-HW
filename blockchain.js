@@ -1,5 +1,8 @@
 let blockchain = [];
 let blockCounter = 0;
+let networkNodes = {};
+let currentNodeId = 'node-1';
+let nodeCount = 5;
 
 async function sha256(message) {
     const msgBuffer = new TextEncoder().encode(message);
@@ -41,6 +44,7 @@ async function recalculateAllHashes() {
     for (let i = 0; i < blockchain.length; i++) {
         await updateBlockHash(i);
     }
+    networkNodes[currentNodeId].blockchain = blockchain;
 }
 
 async function verifyBlockchain() {
@@ -51,7 +55,6 @@ async function verifyBlockchain() {
 
         const calculatedHash = await calculateBlockHash(block);
 
-        // Check if this block's hash matches its data
         const hashMatches = (block.hash === calculatedHash);
         
         let chainIntact = true;
@@ -66,7 +69,6 @@ async function verifyBlockchain() {
             blockDiv.classList.remove('valid-block', 'invalid-block');
         }
 
-        // Block is valid only if its data is correct AND the next block's chain link is intact
         if(hashMatches && chainIntact){
             if(blockDiv){
                 blockDiv.classList.add('valid-block');
@@ -103,35 +105,43 @@ async function addTransaction() {
         timestamp: new Date().toLocaleString()
     };
 
-    // Get previous block's hash (or '0' for genesis block)
-    const previousHash = blockchain.length > 0 
-        ? blockchain[blockchain.length - 1].hash 
-        : '0';
+    // Broadcast to all nodes
+    for (const nodeId in networkNodes) {
+        const node = networkNodes[nodeId];
+        
+        const previousHash = node.blockchain.length > 0 
+            ? node.blockchain[node.blockchain.length - 1].hash 
+            : '0';
 
-    const currentHash = await calculateBlockHash({
-        blockNumber: blockCounter,
-        timestamp: new Date().toLocaleString(),
-        previousHash: previousHash,
-        transactions: [transaction]
-    });
+        const currentHash = await calculateBlockHash({
+            blockNumber: node.blockCounter,
+            timestamp: transaction.timestamp,
+            previousHash: previousHash,
+            transactions: [transaction]
+        });
 
-    // Create a new block with this transaction
-    const block = {
-        blockNumber: blockCounter++,
-        timestamp: new Date().toLocaleString(),
-        previousHash: previousHash,
-        transactions: [transaction],
-        hash: currentHash 
-    };
+        const block = {
+            blockNumber: node.blockCounter++,
+            timestamp: transaction.timestamp,
+            previousHash: previousHash,
+            transactions: [transaction],
+            hash: currentHash
+        };
 
-    blockchain.push(block);
+        node.blockchain.push(block);
+    }
     
-    // Clear the form
+    // Update current view
+    const currentNode = networkNodes[currentNodeId];
+    blockchain = currentNode.blockchain;
+    blockCounter = currentNode.blockCounter;
+    
     document.getElementById('sender').value = '';
     document.getElementById('receiver').value = '';
     document.getElementById('amount').value = '';
 
     renderBlockchain();
+    updateNetworkStatus();
 }
 
 function renderBlockchain() {
@@ -155,7 +165,7 @@ function renderBlockchain() {
     });
 
     if (blockchain.length === 0) {
-        container.innerHTML = '<div class="no-blocks">No transactions yet. Add your first transaction above!</div>';
+        container.innerHTML = '<div class="no-blocks">No transactions yet.</div>';
         return;
     }
 
@@ -215,7 +225,6 @@ function renderBlockchain() {
     });
 }
 
-// Handle inline editing of transaction fields
 document.addEventListener('blur', function(e) {
     if (e.target.classList.contains('editable')) {
         const blockIndex = parseInt(e.target.dataset.block);
@@ -223,7 +232,6 @@ document.addEventListener('blur', function(e) {
         const field = e.target.dataset.field;
         let value = e.target.textContent.trim();
         
-        // Remove $ sign if editing amount
         if (field === 'amount') {
             value = value.replace('$', '');
             blockchain[blockIndex].transactions[txIndex][field] = parseFloat(value) || 0;
@@ -231,11 +239,202 @@ document.addEventListener('blur', function(e) {
             blockchain[blockIndex].transactions[txIndex][field] = value;
         }
         
-        // Re-render to update display format
         renderBlockchain();
     }
 }, true);
 
-
-// Initialize with empty blockchain
+initializeNetwork();
 renderBlockchain();
+
+function initializeNetwork() {
+    for (let i = 1; i <= nodeCount; i++) {
+        const nodeId = `node-${i}`;
+        networkNodes[nodeId] = {
+            id: nodeId,
+            name: `Node ${i}`,
+            blockchain: [],
+            blockCounter: 0,
+            status: 'in-sync',
+            statusText: 'In Sync'
+        };
+    }
+    renderNodeSelector();
+}
+
+function renderNodeSelector() {
+    const container = document.getElementById('node-selector');
+    if (!container) return;
+    
+    let html = '';
+    Object.values(networkNodes).forEach(node => {
+        const isActive = node.id === currentNodeId;
+        const statusClass = node.status || 'in-sync';
+        const statusText = node.statusText || 'In Sync';
+        html += `
+            <div class="node-card ${isActive ? 'active-node' : ''}" onclick="switchNode('${node.id}')">
+                <div class="node-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="node-name">${node.name}</div>
+                <div class="node-status ${statusClass}" id="status-${node.id}">${statusText}</div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function switchNode(nodeId) {
+    currentNodeId = nodeId;
+    const node = networkNodes[nodeId];
+    blockchain = node.blockchain;
+    blockCounter = node.blockCounter;
+    renderNodeSelector();
+    renderBlockchain();
+}
+
+async function syncTransaction() {
+    const sender = document.getElementById('sender').value.trim();
+    const receiver = document.getElementById('receiver').value.trim();
+    const amount = document.getElementById('amount').value;
+
+    if (!sender || !receiver || !amount) {
+        alert('Please fill in all fields!');
+        return;
+    }
+
+    const transaction = {
+        sender: sender,
+        receiver: receiver,
+        amount: parseFloat(amount),
+        timestamp: new Date().toLocaleString()
+    };
+
+    // Broadcast to all nodes
+    for (const nodeId in networkNodes) {
+        const node = networkNodes[nodeId];
+        
+        const previousHash = node.blockchain.length > 0 
+            ? node.blockchain[node.blockchain.length - 1].hash 
+            : '0';
+
+        const currentHash = await calculateBlockHash({
+            blockNumber: node.blockCounter,
+            timestamp: transaction.timestamp,
+            previousHash: previousHash,
+            transactions: [transaction]
+        });
+
+        const block = {
+            blockNumber: node.blockCounter++,
+            timestamp: transaction.timestamp,
+            previousHash: previousHash,
+            transactions: [transaction],
+            hash: currentHash
+        };
+
+        node.blockchain.push(block);
+    }
+    
+    // Update current view
+    const currentNode = networkNodes[currentNodeId];
+    blockchain = currentNode.blockchain;
+    blockCounter = currentNode.blockCounter;
+    
+    document.getElementById('sender').value = '';
+    document.getElementById('receiver').value = '';
+    document.getElementById('amount').value = '';
+
+    renderBlockchain();
+    updateNetworkStatus();
+}
+
+function updateNetworkStatus() {
+    Object.values(networkNodes).forEach(node => {
+        node.status = 'in-sync';
+        node.statusText = 'In Sync';
+        const statusElement = document.getElementById(`status-${node.id}`);
+        if (statusElement) {
+            statusElement.textContent = 'In Sync';
+            statusElement.className = 'node-status in-sync';
+        }
+    });
+}
+
+async function validateNetworkConsensus() {
+    const blockchainHashes = {};
+    
+    // Calculate hash for each node's blockchain
+    for (const nodeId in networkNodes) {
+        const node = networkNodes[nodeId];
+        const chainHash = await calculateChainHash(node.blockchain);
+        
+        if (!blockchainHashes[chainHash]) {
+            blockchainHashes[chainHash] = [];
+        }
+        blockchainHashes[chainHash].push(nodeId);
+    }
+    
+    // Find majority consensus
+    const hashCounts = Object.entries(blockchainHashes).map(([hash, nodes]) => ({
+        hash,
+        nodes,
+        count: nodes.length
+    }));
+    
+    hashCounts.sort((a, b) => b.count - a.count);
+    const consensusHash = hashCounts[0].hash;
+    const consensusNodes = hashCounts[0].nodes;
+    
+    const statusElement = document.getElementById('consensus-result');
+    
+    if (hashCounts.length === 1) {
+        // All nodes agree
+        statusElement.className = 'consensus-success';
+        statusElement.textContent = `Network Consensus: All ${nodeCount} nodes are in sync!`;
+        
+        Object.values(networkNodes).forEach(node => {
+            node.status = 'in-sync';
+            node.statusText = 'In Sync';
+            const nodeStatus = document.getElementById(`status-${node.id}`);
+            if (nodeStatus) {
+                nodeStatus.textContent = 'In Sync';
+                nodeStatus.className = 'node-status in-sync';
+            }
+        });
+    } else {
+        // Some nodes disagree
+        const rejectedNodes = Object.keys(networkNodes).filter(id => !consensusNodes.includes(id));
+        
+        statusElement.className = 'consensus-failure';
+        statusElement.textContent = `Network Rejected: ${rejectedNodes.length} node(s) have invalid blockchain! Majority (${consensusNodes.length}/${nodeCount}) nodes agree on the true chain.`;
+        
+        Object.values(networkNodes).forEach(node => {
+            const nodeStatus = document.getElementById(`status-${node.id}`);
+            if (nodeStatus) {
+                if (consensusNodes.includes(node.id)) {
+                    node.status = 'in-sync';
+                    node.statusText = 'In Sync';
+                    nodeStatus.textContent = 'In Sync';
+                    nodeStatus.className = 'node-status in-sync';
+                } else {
+                    node.status = 'rejected';
+                    node.statusText = 'Rejected';
+                    nodeStatus.textContent = 'Rejected';
+                    nodeStatus.className = 'node-status rejected';
+                }
+            }
+        });
+    }
+}
+
+async function calculateChainHash(chain) {
+    const chainString = JSON.stringify(chain.map(block => ({
+        blockNumber: block.blockNumber,
+        hash: block.hash,
+        previousHash: block.previousHash
+    })));
+    return await sha256(chainString);
+}

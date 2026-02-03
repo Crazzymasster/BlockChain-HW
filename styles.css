@@ -339,3 +339,152 @@ h2 {
 #verification-result {
     margin-bottom: 1.5rem;
 }
+/* Network Nodes Section */
+.network-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+    border: 1px solid var(--bank-border);
+}
+
+.subtitle {
+    color: var(--bank-text-light);
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.network-description {
+    color: var(--bank-text-light);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.node-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.node-card {
+    background: #f8fafc;
+    border: 2px solid var(--bank-border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.node-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--bank-secondary);
+}
+
+.node-card.active-node {
+    border-color: var(--bank-secondary);
+    background: linear-gradient(135deg, #e0f7ff 0%, #f0fbff 100%);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.node-icon {
+    color: var(--bank-primary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    justify-content: center;
+}
+
+.active-node .node-icon {
+    color: var(--bank-secondary);
+}
+
+.node-name {
+    font-weight: 700;
+    color: var(--bank-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.node-status {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.node-status.in-sync {
+    background: #f0fdf4;
+    color: var(--bank-success);
+    border: 1px solid var(--bank-success);
+}
+
+.node-status.rejected {
+    background: #fef2f2;
+    color: var(--bank-error);
+    border: 1px solid var(--bank-error);
+}
+
+.network-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.network-actions .btn {
+    min-width: 200px;
+}
+
+.btn-broadcast {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.btn-broadcast:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-consensus {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+}
+
+.btn-consensus:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.consensus-success {
+    color: var(--bank-success);
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem;
+    background: #f0fdf4;
+    border-radius: 6px;
+    border: 2px solid var(--bank-success);
+}
+
+.consensus-failure {
+    color: var(--bank-error);
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem;
+    background: #fef2f2;
+    border-radius: 6px;
+    border: 2px solid var(--bank-error);
+}
+
+.node-info {
+    background: #fffbeb;
+    border: 2px solid #fbbf24;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #92400e;
+}
