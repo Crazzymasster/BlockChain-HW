@@ -3,39 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blockchain Demo - Transaction Viewer</title>
+    <title>Rice Bank - Blockchain Transaction Ledger</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <header class="bank-header">
+        <div class="header-content">
+            <div class="bank-logo">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="40" height="40" rx="8" fill="#0A2540"/>
+                    <path d="M20 8L30 15V28H25V20H15V28H10V15L20 8Z" fill="#00D4FF"/>
+                </svg>
+                <span>Rice Bank</span>
+            </div>
+        </div>
+    </header>
+    
     <div class="container">
-        <h1>Blockchain Transaction Demo</h1>
+        <div class="page-header">
+            <h1>Blockchain Transaction Ledger</h1>
+        </div>
         
         <div class="add-transaction-panel">
-            <h2>Add New Transaction</h2>
+            <h2>New Transaction</h2>
             <div class="form-group">
-                <label for="sender">Sender:</label>
+                <label for="sender">Sender</label>
                 <input type="text" id="sender" placeholder="Enter sender name">
             </div>
             <div class="form-group">
-                <label for="receiver">Receiver:</label>
+                <label for="receiver">Receiver</label>
                 <input type="text" id="receiver" placeholder="Enter receiver name">
             </div>
             <div class="form-group">
-                <label for="amount">Amount:</label>
-                <input type="number" id="amount" placeholder="Enter amount" step="0.01">
+                <label for="amount">Amount</label>
+                <input type="number" id="amount" placeholder="0.00" step="0.01">
             </div>
-            <button class="btn" onclick="addTransaction()">Add Transaction</button>
+            <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
         </div>
 
-        <div id="blockchain" class="blockchain-container">
-            <div class="no-blocks">No transactions yet. Add your first transaction above!</div>
+        <div class="ledger-section">
+            <div class="ledger-header">
+                <h2>Transaction History</h2>
+                <button class="btn btn-secondary" onclick="verifyBlockchain()">Verify Blockchain</button>
+            </div>
+            <div id="verification-result"></div>
+            <div id="blockchain" class="blockchain-container">
+                <div class="no-blocks">
+                    <p>No transactions recorded</p>
+                </div>
+            </div>
         </div>
-
-
-        <button class = "btn"onclick="verifyBlockchain()">Verify Blockchain </button>
-        <div id="verification-result"></div>
-
     </div>
+    
+    <footer class="bank-footer">
+        <p>© 2026 Rice Bank. All transactions are cryptographically secured and immutable.</p>
+    </footer>
 
     <script src="blockchain.js"></script>
 </body>
